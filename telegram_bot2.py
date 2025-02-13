@@ -2,8 +2,6 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
 import logging
 import config
-# Replace with your bot token
-
 
 # Functions to handle file operations for user IDs
 def read_user_ids(file_path='user_ids.txt'):
@@ -63,7 +61,7 @@ def main():
     )
 
     # Create the Telegram application
-    application = Application.builder().token(BOT_TOKEN).build()
+    application = Application.builder().token(config.BOT_TOKEN).build()
 
     # Add handlers
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_instagram_reels))

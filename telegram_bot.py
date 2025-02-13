@@ -56,7 +56,7 @@ async def mention_all(update: Update, context):
 # Main function to run the bot locally
 def main():
     # Create the Telegram application
-    application = Application.builder().token(BOT_TOKEN).build()
+    application = Application.builder().token(config.BOT_TOKEN).build()
 
     # Add handlers
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_instagram_reels))
