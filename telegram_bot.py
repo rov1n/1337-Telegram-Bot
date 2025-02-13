@@ -1,13 +1,8 @@
 from telegram import Update
 from telegram import Bot
 from telegram.ext import Application, MessageHandler, filters, CommandHandler
+import config
 
-# Replace with your bot token
-# BOT_TOKEN = "7403365993:AAFv7496BPEa1KOLFJ58hyucm_1xIS3ANvw"
-
-#testing bot Bot Token:
-
-BOT_TOKEN = "7704633190:AAEkoyAJ__ySF1Kmcr8Y2MNC70Gf5bPxfww"
 
 # Function to handle Instagram Reels links
 async def handle_instagram_reels(update: Update, context):
