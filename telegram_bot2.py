@@ -1,9 +1,9 @@
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
 import logging
-
+import config
 # Replace with your bot token
-BOT_TOKEN = "7704633190:AAEkoyAJ__ySF1Kmcr8Y2MNC70Gf5bPxfww"
+
 
 # Functions to handle file operations for user IDs
 def read_user_ids(file_path='user_ids.txt'):
