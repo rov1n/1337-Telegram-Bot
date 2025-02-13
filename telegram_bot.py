@@ -1,12 +1,32 @@
 from telegram import Update
-from telegram import Bot
-from telegram.ext import Application, MessageHandler, filters, CommandHandler
+from telegram.ext import Application, CommandHandler, MessageHandler, filters
+import logging
 import config
 
+myBotToken = config.TEST_BOT_TOKEN
+# Functions to handle file operations for user IDs
+def read_user_ids(file_path='user_ids.txt'):
+    try:
+        with open(file_path, 'r') as file:
+            user_ids = {int(line.strip()) for line in file}
+    except FileNotFoundError:
+        user_ids = set()
+    return user_ids
 
-# Function to handle Instagram Reels links
+def write_user_id(user_id, file_path='user_ids.txt'):
+    user_ids = read_user_ids(file_path)
+    user_ids.add(user_id)
+    with open(file_path, 'w') as file:
+        for uid in user_ids:
+            file.write(f"{uid}\n")
+
+# Function to handle Instagram Reels links and store user IDs
 async def handle_instagram_reels(update: Update, context):
     message_text = update.message.text
+    user_id = update.message.from_user.id
+
+    # Store user ID in the text file
+    write_user_id(user_id)
 
     # Check for Instagram Reels links
     if "instagram.com/reel/" in message_text:
@@ -18,50 +38,35 @@ async def handle_instagram_reels(update: Update, context):
         expanded_url = message_text.replace("x.com", "fxtwitter.com")
         await update.message.reply_text(f"Expanded Twitter link: {expanded_url}")
 
-# # Function to handle @all, @everybody, @everyone mentions
-# async def handle_mentions(update: Update, context):
-#     message_text = update.message.text.lower()
-
-#     # Check for mention keywords
-#     if "@all" in message_text or "@everybody" in message_text or "@everyone" in message_text:
-#         # Get all members of the group
-#         chat_id = update.message.chat_id
-#         try:
-#             members = await context.bot.get_chat_members(chat_id)
-#             # Mention all users
-#             mention_text = " ".join([f"@{member.user.username}" for member in members if member.user.username])
-#             await update.message.reply_text(f"Mentioning all users: {mention_text}")
-#         except Exception as e:
-#             print(f"Error fetching group members: {e}")
-#             await update.message.reply_text("Sorry, I couldn't fetch the list of users.")
-
-
 # Function to handle the /everyone command
 async def mention_all(update: Update, context):
     chat_id = update.message.chat_id
     bot = context.bot
     try:
-        # Get all administrators of the group
-        admins = await bot.get_chat_administrators(chat_id)
         mention_message = "Attention everyone!\n\n"
-        for admin in admins:
-            user = admin.user
-            mention_message += f"[{user.first_name}](tg://user?id={user.id}) "
+        user_ids = read_user_ids()
+        for user_id in user_ids:
+            member = await bot.get_chat_member(chat_id, user_id)
+            mention_message += f"[{member.user.first_name}](tg://user?id={member.user.id}) "
         await update.message.reply_text(mention_message, parse_mode="Markdown")
     except Exception as e:
         print(f"Error fetching group members: {e}")
         await update.message.reply_text("Sorry, I couldn't fetch the list of users.")
 
-
 # Main function to run the bot locally
 def main():
+    # Enable logging
+    logging.basicConfig(
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        level=logging.INFO
+    )
+
     # Create the Telegram application
-    application = Application.builder().token(config.BOT_TOKEN).build()
+    application = Application.builder().token(myBotToken).build()
 
     # Add handlers
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_instagram_reels))
-    # application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_mentions))
-    application.add_handler(CommandHandler("everyone", mention_all))
+    application.add_handler(CommandHandler("mentionall", mention_all))
 
     # Start the bot
     print("Bot is running...")

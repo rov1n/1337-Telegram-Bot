@@ -1,2 +1,5 @@
 # .gitignore
 config.py
+telegrambot-backend-firebase-adminsdk-fbsvc-61b17bd75b.json
+firebase_config.py
+user_ids.txt
