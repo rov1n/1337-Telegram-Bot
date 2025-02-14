@@ -6,7 +6,7 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters
 import config  # Import config file
 import os, sqlite3, html
 
-myBotToken = config.TEST_BOT_TOKEN
+myBotToken = config.LEXI_TOKEN
 # Adjust path for deployment environment
 db_path = os.path.join(os.path.dirname(__file__), 'users.db')
 
