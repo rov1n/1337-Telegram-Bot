@@ -1,9 +1,8 @@
-from telegram import Update, Bot, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters
+from telegram import Update, Bot
+from telegram.ext import Application, CommandHandler, MessageHandler, filters
 import logging, os, sqlite3, html
 import config  # Import config file
-from pytube import YouTube  # Import YouTube library
-import telebot
+
 
 myBotToken = config.BOT_TOKEN
 # Adjust path for deployment environment
@@ -119,62 +118,8 @@ async def mention_all(update: Update, context):
         print(f"Error fetching group members: {e}")
         await update.message.reply_text("Sorry, I couldn't fetch the list of users.")
 
-# Function to handle YouTube video downloads
-async def handle_youtube_links_other(update: Update, context):
-    bot = telebot.TeleBot(myBotToken)
-    message_text = update.message.text
-    if "youtube.com" in message_text or "youtu.be" in message_text:
-        await update.message.reply_text("Which format would you like to download?\n1. Video (MP4)\n2. Audio (MP3)")
-
-        # Handle the user's choice
-        @bot.message_handler(func=lambda msg: msg.text in ['1', '2'])
-        def handle_format_choice(msg):
-            url = message_text
-            yt = YouTube(url)
-            if msg.text == '1':
-                stream = yt.streams.get_highest_resolution()
-                stream.download(output_path='downloads/', filename='video.mp4')
-                bot.send_message(msg.chat.id, "Video downloaded successfully!")
-                bot.send_document(msg.chat.id, open('downloads/video.mp4', 'rb'))
-            elif msg.text == '2':
-                stream = yt.streams.filter(only_audio=True).first()
-                stream.download(output_path='downloads/', filename='audio.mp3')
-                bot.send_message(msg.chat.id, "Audio downloaded successfully!")
-                bot.send_document(msg.chat.id, open('downloads/audio.mp3', 'rb'))
-
-#
-
-#--------------------------------------------------
-# Download YT videos
-
-# Initialize the bot
-bot = telebot.TeleBot(myBotToken)
-
-# Function to handle YouTube video downloads
-async def handle_youtube_links(update: Update, context):
-    message_text = update.message.text
-    if "youtube.com" in message_text or "youtu.be" in message_text:
-        yt = YouTube(message_text)
-        streams = yt.streams.filter(progressive=True, file_extension='mp4')
-        buttons = [[InlineKeyboardButton(f"{stream.resolution}", callback_data=f"download|{stream.itag}") for stream in streams]]
-        reply_markup = InlineKeyboardMarkup(buttons)
-        await update.message.reply_text("Choose a resolution to download:", reply_markup=reply_markup)
-
-# Function to download video
-async def download_video(update: Update, context):
-    query = update.callback_query
-    data = query.data.split('|')
-    if data[0] == 'download':
-        itag = data[1]
-        yt = YouTube(query.message.text)
-        stream = yt.streams.get_by_itag(itag)
-        stream.download(output_path='downloads/', filename='video.mp4')
-        await query.message.reply_text("Video downloaded successfully!")
-        await context.bot.send_document(query.message.chat_id, open('downloads/video.mp4', 'rb'))
-        await query.answer()
 
 
-#--------------------------------
 def main():
     # Enable logging
     logging.basicConfig(
@@ -186,8 +131,8 @@ def main():
     application = Application.builder().token(myBotToken).build()
     # Add handlers
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_instagram_reels))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_youtube_links))
-    application.add_handler(CallbackQueryHandler(download_video))
+    
+    
     application.add_handler(CommandHandler("everyone", mention_all))
 
     
@@ -196,4 +141,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-9
