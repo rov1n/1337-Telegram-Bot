@@ -2,17 +2,4 @@
 config.py
 telegrambot-backend-firebase-adminsdk-fbsvc-61b17bd75b.json
 firebase_config.py
-user_ids.txt# .gitignore
-config.py
-telegrambot-backend-firebase-adminsdk-fbsvc-61b17bd75b.json
-firebase_config.py
-user_ids.txt
-# Add a comment to explain the purpose of each file
-# Configuration file for the application
-config.py
-# Firebase admin SDK configuration file
-telegrambot-backend-firebase-adminsdk-fbsvc-61b17bd75b.json
-# Firebase configuration file
-firebase_config.py
-# File containing user IDs
 user_ids.txt
