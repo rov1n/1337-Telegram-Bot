@@ -1,16 +1,18 @@
+import logging
+# import asyncio
+import datetime
 from telegram import Update, Bot
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
-import logging, os, sqlite3, html
 import config  # Import config file
+import os, sqlite3, html
 
-# import datetime
-
-myBotToken = config.BOT_TOKEN
+myBotToken = config.TEST_BOT_TOKEN
 # Adjust path for deployment environment
 db_path = os.path.join(os.path.dirname(__file__), 'users.db')
 
-# cooldown_duration = datetime.timedelta(minutes=2)
-# last_use_time = None  # Initialize last use time
+# Cooldown duration for /everyone command (2 minutes)
+cooldown_duration = datetime.timedelta(seconds=5)
+last_use_time = None  # Initialize last use time
 
 def init_db():
     conn = sqlite3.connect(db_path)
@@ -83,7 +85,6 @@ async def get_user_details_from_api(bot, user_id):
 init_db()
 
 # Function to handle Instagram Reels links and store user details
-# Function to handle Instagram Reels links and store user details
 async def handle_instagram_reels(update: Update, context):
     message_text = update.message.text
     user_id = update.message.from_user.id
@@ -102,25 +103,33 @@ async def handle_instagram_reels(update: Update, context):
         expanded_url = message_text.replace("x.com", "fxtwitter.com")
         await update.message.reply_text(f"Expanded Twitter link: \n{expanded_url}")
 
-
-# With usernames
+# With usernames and cooldown
 async def mention_all(update: Update, context):
-    chat_id = update.message.chat_id
-    bot = context.bot
-    try:
-        mention_message = "Attention everyone!\n\n"
-        user_ids = get_user_ids()
-        for user_id in user_ids:
-            first_name, last_name, username = await get_user_name(bot, chat_id, int(user_id))
-            if username:
-                mention_message += f"[@{html.escape(username)}](tg://user?id={user_id})\n"
-            else:
-                full_name = f"{first_name}".strip()  # Ensure there are no extra spaces
-                mention_message += f"[{full_name}](tg://user?id={user_id})\n"
-        await update.message.reply_text(mention_message, parse_mode="Markdown")
-    except Exception as e:
-        print(f"Error fetching group members: {e}")
-        await update.message.reply_text("Sorry, I couldn't fetch the list of users.")
+    global last_use_time
+    current_time = datetime.datetime.now()
+
+    if last_use_time is None or current_time - last_use_time >= cooldown_duration:
+        # Execute the command
+        last_use_time = current_time
+        chat_id = update.message.chat_id
+        bot = context.bot
+        try:
+            mention_message = "Attention everyone!\n\n"
+            user_ids = get_user_ids()
+            for user_id in user_ids:
+                first_name, last_name, username = await get_user_name(bot, chat_id, int(user_id))
+                if username:
+                    mention_message += f"[@{html.escape(username)}](tg://user?id={user_id})\n"
+                else:
+                    full_name = f"{first_name}".strip()  # Ensure there are no extra spaces
+                    mention_message += f"[{full_name}](tg://user?id={user_id})\n"
+            await update.message.reply_text(mention_message, parse_mode="Markdown")
+        except Exception as e:
+            print(f"Error fetching group members: {e}")
+            await update.message.reply_text("Sorry, I couldn't fetch the list of users.")
+    else:
+        remaining_time = cooldown_duration - (current_time - last_use_time)
+        await update.message.reply_text(f"Please wait {remaining_time.seconds} seconds before using /everyone again.")
 
 
 
