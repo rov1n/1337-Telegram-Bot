@@ -33,6 +33,7 @@ def add_or_update_user_details(user_id, first_name, last_name, username):
     ''', (user_id, first_name, last_name, username))
     conn.commit()
     conn.close()
+    
 
 def get_user_ids():
     conn = sqlite3.connect('users.db')
@@ -109,10 +110,8 @@ async def handle_instagram_reels(update: Update, context):
     first_name = update.message.from_user.first_name
     last_name = update.message.from_user.last_name or ""
     username = update.message.from_user.username or ""
-
     # Store or update user details in SQLite
     add_or_update_user_details(user_id, first_name, last_name, username)
-
     # Check for Instagram Reels links
     if "instagram.com/" in message_text:
         # Convert to ddinstagram.com link
@@ -206,13 +205,7 @@ async def kick_command(update: Update, context):
     else:
         await update.message.reply_text(f"Failed to kick user {user_id}.")
 
-def add_user_entry():
-    user_id = 1892630284
-    first_name = "Joesthells"
-    last_name = ""  # No last name provided
-    username = "joesthells"
-    add_or_update_user_details(user_id, first_name, last_name, username)
-    print("Entry added to the database.")
+
 # Command to fetch all user IDs and details
 # Main function to run the bot locally
 def main():
@@ -227,13 +220,12 @@ def main():
 
     # Add handlers
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_instagram_reels))
-    application.add_handler(MessageHandler(filters.CONTACT, handle_contact))
+    # application.add_handler(MessageHandler(filters.CONTACT, handle_contact))
     application.add_handler(CommandHandler("everyone", mention_all))
     application.add_handler(CommandHandler("kick", kick_command))
     application.add_handler(CommandHandler("fetch", fetch_user_ids_command))
     application.add_handler(CommandHandler("delete", delete_user_command))
-    add_user_entry()
-    # Start the bot
+    
     print("Bot is running...")
     application.run_polling()
 
